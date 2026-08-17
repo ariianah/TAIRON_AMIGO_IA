@@ -1,0 +1,22 @@
+{
+  "name": "Amigo",
+  "short_name": "Amigo",
+  "description": "Un amigo virtual que escucha y responde por voz",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12142A",
+  "theme_color": "#12142A",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
