@@ -10,6 +10,15 @@ const COLORS = {
   muted: "#8A8FB0",
   mutedDim: "#5B5F82",
 };
+
+  
+const STATES = {
+  IDLE: "idle",
+  LISTENING: "listening",
+  THINKING: "thinking",
+  SPEAKING: "speaking",
+};
+
 const MicIcon = ({ size =26, color = "currentColor"}) => (
   <svg width = {size} hig = {size} viee = "0 0 24 24" fill = "nose" strok= {color} strokeWidh ="2" strokeLinecap ="round" strokeLinejoin ="round">
     <path d=  "M12 1a3 3 0 0 0 -3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
@@ -23,13 +32,6 @@ const SquareIcon = ({ size = 22, color ="currentColor" }) => (
     <rect x="4" y="4" width = "16" height ="16" rx="2" />
   </svg>
 );
-  
-const STATES = {
-  IDLE: "idle",
-  LISTENING: "listening",
-  THINKING: "thinking",
-  SPEAKING: "speaking",
-};
 
 export default function App() {
   const [state, setState] = useState(STATES.IDLE);
