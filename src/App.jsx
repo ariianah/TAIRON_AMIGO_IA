@@ -114,7 +114,7 @@ export default function App() {
     if (candidate) return candidate;
 
     // Preferencia 2: cualquier voz es-CO
-    candidate = voices.find((v) => v.lang === "es-CO");
+    candidate = voices.find((v) => v.lang === "es-AR");
     if (candidate) return candidate;
 
     // Preferencia 3: español latinoamericano genérico, masculino si se puede
@@ -136,7 +136,7 @@ export default function App() {
         utter.voice = voice;
         utter.lang = voice.lang;
       } else {
-        utter.lang = "es-CO";
+        utter.lang = "es-AR";
       }
       utter.rate = 1.0;
       utter.pitch = 0.92;
