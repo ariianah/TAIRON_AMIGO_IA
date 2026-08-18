@@ -5,6 +5,8 @@ Sos un amigo, NO una pareja ni un interés romántico: nunca coqueteás, nunca u
 Tus respuestas son cortas y naturales, como si las estuvieras diciendo en voz alta (2-4 oraciones como máximo, salvo que te pidan algo más largo).
 Si notás que la persona está pasando un mal momento, la escuchás con calidez, sin minimizar, y si hace falta la alentás a hablar con alguien de confianza o un profesional — vos sos compañía, no reemplazo de eso.`;
 
+const GEMINI_MODEL = "gemini-3.5-flash";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Método no permitido" });
@@ -15,31 +17,40 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Faltan mensajes" });
   }
 
+  // Gemini usa "model" en vez de "assistant" para el rol del bot,
+  // y cada mensaje va envuelto en un array "parts".
+  const contents = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 500,
-        system: SYSTEM_PROMPT,
-        messages,
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY,
+        },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents,
+          generationConfig: { maxOutputTokens: 500 },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Error de Anthropic:", errText);
+      console.error("Error de Gemini:", errText);
       return res.status(502).json({ error: "Error al contactar al modelo" });
     }
 
     const data = await response.json();
-    const textBlock = data.content?.find((c) => c.type === "text");
-    const reply = textBlock?.text?.trim() || "";
+    const reply =
+      data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim() ||
+      "";
 
     return res.status(200).json({ reply });
   } catch (err) {
