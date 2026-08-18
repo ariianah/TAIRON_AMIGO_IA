@@ -5,7 +5,7 @@ Sos un amigo, NO una pareja ni un interés romántico: nunca coqueteás, nunca u
 Tus respuestas son cortas y naturales, como si las estuvieras diciendo en voz alta (2-4 oraciones como máximo, salvo que te pidan algo más largo).
 Si notás que la persona está pasando un mal momento, la escuchás con calidez, sin minimizar, y si hace falta la alentás a hablar con alguien de confianza o un profesional — vos sos compañía, no reemplazo de eso.`;
 
-const GEMINI_MODEL = "gemini-3.5-flash";
+const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -17,40 +17,28 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Faltan mensajes" });
   }
 
-  // Gemini usa "model" en vez de "assistant" para el rol del bot,
-  // y cada mensaje va envuelto en un array "parts".
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": process.env.GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents,
-          generationConfig: { maxOutputTokens: 500 },
-        }),
-      }
-    );
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: GROQ_MODEL,
+        max_tokens: 500,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+      }),
+    });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("Error de Gemini:", errText);
+      console.error("Error de Groq:", errText);
       return res.status(502).json({ error: "Error al contactar al modelo" });
     }
 
     const data = await response.json();
-    const reply =
-      data.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim() ||
-      "";
+    const reply = data.choices?.[0]?.message?.content?.trim() || "";
 
     return res.status(200).json({ reply });
   } catch (err) {
